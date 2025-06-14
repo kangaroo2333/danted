@@ -315,13 +315,13 @@ if [ -d /lib64/security/ ] && [ ! -f /lib64/security/pam_pwdfile.so ];then
 fi
 
 if [ "$INSTALL_FROM" == "compile" ];then
-    yum install gcc g++ make libpam-dev libwrap0-dev -y
+    yum install -y gcc make pam-devel tcp_wrappers-devel wget curl unzip httpd-tools
 
     download_file "source/dante-${VERSION}.tar.gz" "dante-${VERSION}.tar.gz"
 
     if [ -f "dante-${VERSION}.tar.gz" ];then
         tar xzf dante-${VERSION}.tar.gz --strip 1
-        ./configure --with-sockd-conf=${CONFIG_PATH} --prefix=${BIN_DIR}
+        ./configure --with-sockd-conf=${CONFIG_PATH} --prefix=${BIN_DIR} --disable-client --disable-preload
         make -j && make install
     fi
 else
