@@ -71,7 +71,7 @@ generate_config_iplist(){
 generate_config_static(){
     if [ "$VERSION" == "1.3.2" ];then
     cat <<EOF
-method: pam none
+socksmethod: none
 clientmethod: none
 user.privileged: root
 user.notprivileged: sockd
