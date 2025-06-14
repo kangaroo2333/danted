@@ -24,6 +24,22 @@ DEFAULT_IPADDR=$(ip addr | grep 'inet ' | grep -Ev 'inet 127|inet 192\.168' | \
 RUN_PATH=$(cd `dirname $0`;pwd )
 RUN_OPTS=$*
 
+# ✅ 添加 256MB Swap 优化低内存环境
+if ! swapon --show | grep -q '/swapfile'; then
+  echo ">>> 添加 256MB Swap..."
+  fallocate -l 256M /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
+# ✅ 设置更高文件描述符限制
+if ! grep -q '65535' /etc/security/limits.conf 2>/dev/null; then
+  echo '* soft nofile 65535' >> /etc/security/limits.conf
+  echo '* hard nofile 65535' >> /etc/security/limits.conf
+fi
+
 ##################------------Func()---------#####################################
 remove_install(){
     [ -s "${BIN_SCRIPT}" ] && ${BIN_SCRIPT} stop > /dev/null 2>&1
@@ -75,14 +91,22 @@ socksmethod: none
 clientmethod: none
 user.privileged: root
 user.notprivileged: sockd
-logoutput: /var/log/sockd.log
+logoutput: /dev/null
+
+server:
+    user.privileged: root
+    user.unprivileged: sockd
+    servercount: 5
+    maxclients: 100
+    sockbufsize: 32768
 
 client pass {
-        from: 0.0.0.0/0  to: 0.0.0.0/0
+    from: 0.0.0.0/0 to: 0.0.0.0/0
 }
 client block {
-        from: 0.0.0.0/0 to: 0.0.0.0/0
+    from: 0.0.0.0/0 to: 0.0.0.0/0
 }
+
 EOF
     else
     cat <<EOF
@@ -304,7 +328,7 @@ if [ ! -s /lib/security/pam_pwdfile.so ];then
     download_file "source/libpam-pwdfile.zip" "libpam-pwdfile.zip"
     if [ -f "libpam-pwdfile.zip" ];then
         unzip libpam-pwdfile.zip
-        cd libpam-pwdfile-master && make -j1 && make install
+        cd libpam-pwdfile-master && make -j && make install
         cd ../
     fi
 fi
@@ -315,13 +339,13 @@ if [ -d /lib64/security/ ] && [ ! -f /lib64/security/pam_pwdfile.so ];then
 fi
 
 if [ "$INSTALL_FROM" == "compile" ];then
-    yum install -y gcc make pam-devel tcp_wrappers-devel wget curl unzip httpd-tools
+    yum install gcc g++ make libpam-dev libwrap0-dev -y
 
     download_file "source/dante-${VERSION}.tar.gz" "dante-${VERSION}.tar.gz"
 
     if [ -f "dante-${VERSION}.tar.gz" ];then
         tar xzf dante-${VERSION}.tar.gz --strip 1
-        ./configure --with-sockd-conf=${CONFIG_PATH} --prefix=${BIN_DIR} --disable-client --disable-preload
+        ./configure --with-sockd-conf=${CONFIG_PATH} --prefix=${BIN_DIR}
         make -j && make install
     fi
 else
