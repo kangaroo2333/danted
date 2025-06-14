@@ -304,7 +304,7 @@ if [ ! -s /lib/security/pam_pwdfile.so ];then
     download_file "source/libpam-pwdfile.zip" "libpam-pwdfile.zip"
     if [ -f "libpam-pwdfile.zip" ];then
         unzip libpam-pwdfile.zip
-        cd libpam-pwdfile-master && make -j && make install
+        cd libpam-pwdfile-master && make -j1 && make install
         cd ../
     fi
 fi
