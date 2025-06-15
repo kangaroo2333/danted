@@ -13,7 +13,7 @@ ExecReload=/bin/kill -HUP $MAINPID
 PIDFile=/var/run/sockd.pid
 KillMode=process
 Restart=on-failure
-LimitNOFILE=65535
+#LimitNOFILE=65535
 [Install]
 WantedBy=multi-user.target
 Alias=sockd.service
