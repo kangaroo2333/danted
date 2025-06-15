@@ -23,6 +23,21 @@ DEFAULT_IPADDR=$(ip addr | grep 'inet ' | grep -Ev 'inet 127|inet 192\.168' | \
             sed "s/[[:space:]]*inet \([0-9.]*\)\/.*/\1/")
 RUN_PATH=$(cd `dirname $0`;pwd )
 RUN_OPTS=$*
+# ✅ 添加 256MB Swap 优化低内存环境
+if ! swapon --show | grep -q '/swapfile'; then
+  echo ">>> 添加 256MB Swap..."
+  fallocate -l 256M /swapfile
+  chmod 600 /swapfileAdd commentMore actions
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
+# ✅ 设置更高文件描述符限制
+if ! grep -q '65535' /etc/security/limits.conf 2>/dev/null; then
+  echo '* soft nofile 65535' >> /etc/security/limits.conf
+  echo '* hard nofile 65535' >> /etc/security/limits.conf
+fi
 
 ##################------------Func()---------#####################################
 remove_install(){
