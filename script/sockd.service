@@ -1,8 +1,10 @@
+# /lib/systemd/system/sockd.service
 [Unit]
 Description=Dante Socks5 Daemon, Provider by sockd.info
 Documentation=https://github.com/lozy/danted
 ConditionPathExists=/etc/danted/sockd.conf
 ConditionPathExists=/etc/default/sockd
+#ConditionPathExists=!/var/run/sockd.pid
 
 [Service]
 EnvironmentFile=-/etc/default/sockd
@@ -12,7 +14,6 @@ PIDFile=/var/run/sockd.pid
 KillMode=process
 Restart=on-failure
 LimitNOFILE=65535
-
 [Install]
 WantedBy=multi-user.target
 Alias=sockd.service
