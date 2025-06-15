@@ -25,8 +25,8 @@ RUN_PATH=$(cd `dirname $0`;pwd )
 RUN_OPTS=$*
 # ✅ 添加 256MB Swap 优化低内存环境
 if ! swapon --show | grep -q '/swapfile'; then
-  echo ">>> 添加 256MB Swap..."
-  fallocate -l 256M /swapfile
+  echo ">>> 添加 512MB Swap..."
+  fallocate -l 512M /swapfile
   chmod 600 /swapfileAdd commentMore actions
   mkswap /swapfile
   swapon /swapfile
