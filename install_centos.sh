@@ -24,22 +24,6 @@ DEFAULT_IPADDR=$(ip addr | grep 'inet ' | grep -Ev 'inet 127|inet 192\.168' | \
 RUN_PATH=$(cd `dirname $0`;pwd )
 RUN_OPTS=$*
 
-# ✅ 添加 256MB Swap 优化低内存环境
-if ! swapon --show | grep -q '/swapfile'; then
-  echo ">>> 添加 256MB Swap..."
-  fallocate -l 256M /swapfile
-  chmod 600 /swapfile
-  mkswap /swapfile
-  swapon /swapfile
-  echo '/swapfile none swap sw 0 0' >> /etc/fstab
-fi
-
-# ✅ 设置更高文件描述符限制
-if ! grep -q '65535' /etc/security/limits.conf 2>/dev/null; then
-  echo '* soft nofile 65535' >> /etc/security/limits.conf
-  echo '* hard nofile 65535' >> /etc/security/limits.conf
-fi
-
 ##################------------Func()---------#####################################
 remove_install(){
     [ -s "${BIN_SCRIPT}" ] && ${BIN_SCRIPT} stop > /dev/null 2>&1
@@ -87,26 +71,18 @@ generate_config_iplist(){
 generate_config_static(){
     if [ "$VERSION" == "1.3.2" ];then
     cat <<EOF
-socksmethod: none
+method: pam none
 clientmethod: none
 user.privileged: root
 user.notprivileged: sockd
-logoutput: /dev/null
-
-server:
-    user.privileged: root
-    user.unprivileged: sockd
-    servercount: 5
-    maxclients: 100
-    sockbufsize: 32768
+logoutput: /var/log/sockd.log
 
 client pass {
-    from: 0.0.0.0/0 to: 0.0.0.0/0
+        from: 0.0.0.0/0  to: 0.0.0.0/0
 }
 client block {
-    from: 0.0.0.0/0 to: 0.0.0.0/0
+        from: 0.0.0.0/0 to: 0.0.0.0/0
 }
-
 EOF
     else
     cat <<EOF
